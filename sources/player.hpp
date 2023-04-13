@@ -17,7 +17,7 @@ namespace ariel
             bool inGame;
 
         public:
-            Player(string name) : name(name), cardstaken(0), inGame(false) {};
+            Player(string name);
 
             string getName() const
             {
@@ -60,7 +60,7 @@ namespace ariel
                 this->hand_card.push_back(card);
             }
 
-            string toString()
+            string toString() const
             {
                 return getName() + " has " + to_string(stacksize()) +
                     " cards in hand and " + to_string(cardesTaken()) +
