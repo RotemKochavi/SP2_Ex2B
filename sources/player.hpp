@@ -1,8 +1,5 @@
 #pragma once
 
-#ifndef PLAYER_HPP
-#define PLAYER_HPP
-
 #include <iostream>
 #include <vector>
 #include "card.hpp"
@@ -14,46 +11,60 @@ namespace ariel
     class Player
     {
         private:
-            string name;
-            bool inGame;
             vector<Card> hand_card;
-        //   int cardsTaken
-        //   int stacksize;
-        //   int stackCard;
-        //   int countWins;
-        //   vector<Card> myStack;
-
+            string name;
+            int cardstaken;
+            bool inGame;
 
         public:
+            Player(string name) : name(name), cardstaken(0), inGame(false) {};
 
-        int cardstaken;
-        int stacksize;
-        int stackCard;
-        int countWins;
+            string getName() const
+            {
+                return name;
+            }
 
-        Player(string name);
+            int cardesTaken() const
+            {
+                return cardstaken;
+            }
 
-        string getName();
-        bool empty();
-        bool getInGame();
-        void setInGame(bool status);
-        int cardsTaken();
-        int stackSize();
-        int getCountWins(int size);
-        int counterWins();
-        bool hasCard(Card card) const;
-        int getStackCard();
-        void pushBackCard(Card card_back);
-        Card backCardStack();
-        void popCardStack();
-        void pushCardTaken(Card cardstaken);
-        Card backCardTaken();
-        void popCardTaken();
-        void addCardsTaken();
-        Card getCard();
-        void removeCard();
-        string to_string();
+            int stacksize() const
+            {
+                return (int)hand_card.size();
+            }
+
+            bool getInGame() const
+            {
+                return inGame;
+            }
+
+            void setInGame(bool status)
+            {
+                this->inGame = status;
+            }
+
+            void addCardTaken() {
+                this->cardstaken++;
+            }
+
+            Card &getCard()
+            {
+                Card &ret = hand_card.back();
+                this->hand_card.pop_back();
+                return ret;
+            }
+
+            void addCard(const Card &card)
+            {
+                this->hand_card.push_back(card);
+            }
+
+            string toString()
+            {
+                return getName() + " has " + to_string(stacksize()) +
+                    " cards in hand and " + to_string(cardesTaken()) +
+                    " cards taken.";
+            }
     };
-};
-
-#endif
+}

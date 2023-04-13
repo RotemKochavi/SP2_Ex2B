@@ -13,208 +13,159 @@ using namespace std;
 
 namespace ariel
 {
-    Game::Game(Player& player1, Player &player2) : p1(player1), p2(player2), turn(0)
+    Game::Game(Player &plr1, Player &plr2) : player1(plr1),
+                                             player2(plr2),
+                                             turn(0),
+                                             draws(0),
+                                             p1Wins(0),
+                                             p2Wins(0)
     {
-    
-       if (p1.getInGame() || p2.getInGame())
-        throw logic_error("One of the players is already in game.");
 
-        this->p1.setInGame(true);
-        this->p2.setInGame(true);
-        bool isTurn;
-        creatCard();
-        shuffle();
-        ret_card();
+        if (player1.getInGame() || player2.getInGame())
+            throw logic_error("One of the players is already in game.");
 
-    }
-    
-    string s_suit, s_value;
+        this->player1.setInGame(true);
+        this->player2.setInGame(true);
 
-void Game::creatCard()
-    {
-          switch (Suit)
+        vector<Card> cardsOnTable;
+
+        for (int i = 1; i <= 13; i++)
         {
-            case CLUBS:
-                s_suit = "CLUBS";
-                break;
-            case DIAMONDS:
-                s_suit = "DIAMONDS";
-                break;
-            case HEARTS:
-                s_suit = "HEARTS";
-                break;
-            case SPADES:
-                s_suit = "SPADES";
-                break;
+            cardsOnTable.push_back(Card((Value)i, CLUBS));
+            cardsOnTable.push_back(Card((Value)i, SPADES));
+            cardsOnTable.push_back(Card((Value)i, DIAMONDS));
+            cardsOnTable.push_back(Card((Value)i, HEARTS));
         }
 
-            switch (value)
-            {
-            case ACE:
-                s_value = "ACE";
-                break;
-            case JACK:
-                s_value = "JACK";
-                break;
-            case QUEEN:
-                s_value = "QUEEN";
-                break;
-            case KING:
-                s_value = "KING";
-                break;
-            default:
-                s_value = to_string((int)value);
-                break;
-            }   
-    }
+        unsigned seed = (unsigned)time(NULL);
+        auto rng = default_random_engine(seed);
+        shuffle(cardsOnTable.begin(), cardsOnTable.end(), rng);
 
-void Game:: shuffle() //https://www.javatpoint.com/cpp-algorithm-shuffle-function
-{
-    random_device r_d;
-    mt19937 gen(r_d());
-    shuffle(this->hand_card.begin(), this->hand_card.end(), gen);
-}
+        for (int i = 1; i <= 52; i++)
+        {
+            if (i % 2 == 0)
+                player1.addCard(cardsOnTable.back());
 
-void Game:: ret_card() //##################################
-{
-    for(int i=0; i<=52; i++)
-    {
-        if( i<=25)
-            p1->pushBackCard(this->hand_card[i]);
-        else{
-            p2->pushBackCard(this->hand_card[i]);
+            else
+                player2.addCard(cardsOnTable.back());
+
+            cardsOnTable.pop_back();
         }
     }
-}
 
-void Game::playTurn()
+    void Game::playTurn()
     {
-        
-
-        if (&p1 == &p2)
+        if (&player1 == &player2)
             throw logic_error("Player can't play with himself.");
-        
-        string log = "";
-        bool flag = turn;
-        vector<Card> deck;
-        unsigned int turn_number = 0;
-        unsigned int p1Wins =0 , p2Wins = 0, winner=0;
-        this->lastStats = "";
-        
-        if (p1.getInGame() && p2.getInGame())
+
+        if (!player1.getInGame() || !player2.getInGame())
+            throw logic_error("Game ended!");
+
+        this->turn++;
+
+        if (26 < this->turn)
+            throw logic_error("The game can't continue with more than 26 turns.");
+
+        Card& p1Card = player1.getCard();
+        Card& p2Card = player2.getCard();
+
+        int cardsOnTable = 2;
+
+        cout << player1.getName() << " played " << p1Card.getCardString() << " ";
+        cout << player2.getName() << " played " << p2Card.getCardString() << " ";
+        this->lastStats = "Round " + to_string(this->turn) + ":  " +
+                          player1.getName() + " played " + p1Card.getCardString() + " " +
+                          player2.getName() + " played " + p2Card.getCardString() + ". ";
+
+        while (p1Card.getValue() == p2Card.getValue())
         {
-           this->turn++;
-            if ( 26 < this->turn )
-                throw logic_error("The game can't continue with more than 26 turns.");
-   
-            Card p1Card = p1.getCard();
-            Card p2Card = p2.getCard();
-            p1.removeCard();
-            p2.removeCard();
-        
-            cout << p1.getName() << "played" << p1Card.print_Card << " " ;
-            cout << p2.getName() << "played" << p2Card.print_Card << " " ;
-            this->lastStats = "Round " + to_string(this->turn) + ":  " + p1.getName() + " played " + p1Card.toString() + " " + p2.getName() + " played " + p2Card.to + ". ";
-        
-        
-            if (p1Card > p2Card) 
+            if (player1.stacksize() <= 1 || player2.stacksize() <= 1)
             {
-                cout << p1.getName << "wins in this round!\n";
-                this-> p1Wins++;
-                p2.addCardsTaken();
-
-                while(!p2Card.empty())
+                while (cardsOnTable > 0)
                 {
-                    p1.cardsTaken();
-                    p2Cards.back();
+                    player1.addCardTaken();
+                    player2.addCardTaken();
+                    cardsOnTable -= 2;
                 }
 
-                while(!p1Cards.empty())
-                {
-                    p2.addCardsTaken();
-                    p1Cards.back();
-                }
-            }
-                
-            if (p1Card < p2Card) 
-            {
-                cout << p2.getName << "wins in this round!\n";
-                this-> p2Wins++;
-                p1.addCardsTaken();
-
-                while(!p2Card.empty())
-                {
-                    p1.addCardsTaken();
-                    p1Cards.back();
-                }
-
-                while(!p1Cards.empty())
-                {
-                    p2.addCardTaken();
-                    p1Cards.back();
-                }
-            }
-        
-            if (!p1.stackSize() || !p2.stackSize())
-            {
-                    p1.setInGame(false);
-                    p2.setInGame(false);
-
-                    if ((p1.cardsTaken() < p2.cardsTaken()))
-                        this->winner = &p2;
-                    else 
-                        this->winner = &p1;
+                break;
             }
 
-                this->log += this->lastStats;
+            this->lastStats += "Draw. ";
 
+            player1.getCard();
+            player2.getCard();
+
+            p1Card = player1.getCard();
+            p2Card = player2.getCard();
+
+            cardsOnTable += 4;
         }
-      
-        else
-            throw logic_error ("The game is over!");
+
+        if (p2Card < p1Card)
+        {
+            cout << player1.getName() << " wins in this round!\n";
+            this->lastStats += player1.getName() + " wins in this round!\n";
+            this->p1Wins++;
+
+            while (cardsOnTable > 0 )
+            {
+                player1.addCardTaken();
+                cardsOnTable--;
+            } 
+        }
+
+        else if (p1Card < p2Card)
+        {
+            cout << player2.getName() << " wins in this round!\n";
+            this->lastStats += player2.getName() + " wins in this round!\n";
+            this->p2Wins++;
+            
+            while (cardsOnTable > 0 )
+            {
+                player2.addCardTaken();
+                cardsOnTable--;
+            } 
+        }
+
+        if (!player1.stacksize() || !player2.stacksize())
+        {
+            player1.setInGame(false);
+            player2.setInGame(false);
+        }
+
+        this->log += this->lastStats;
     }
 
-   
-    
     void Game::playAll()
     {
-         if(p1.stackSize() == 0)
-            throw logic_error("The game is over!");
-        
-        while(p1.stackSize() > 0)
+        while (player1.stacksize() > 0 && player2.stacksize() > 0)
             playTurn();
     }
 
-    void Game::printWiner() //error
+    void Game::printWiner() const
     {
-        if (p1.getInGame() || p2.getInGame())
+        if (player1.getInGame() || player2.getInGame())
             return;
-        
-        else if (p1.cardsTaken() > p2.cardsTaken())
-            cout << p1.getName() + " is the winner!!" << endl;
-    
-        else if (p1.cardsTaken() < p2.cardsTaken())
-            cout << p2.getName() + " is the winner!" << endl;
-        
+
+        else if (player1.cardesTaken() > player2.cardesTaken())
+            cout << player1.getName() + " is the winner!!" << endl;
+
+        else if (player1.cardesTaken() < player2.cardesTaken())
+            cout << player2.getName() + " is the winner!" << endl;
+
         else
             cout << "Draw!" << endl;
     }
 
-     void Game::printStats() //error p1,p2
+    void Game::printStats() const
     {
-        cout << "Player " << p1.getName() << "status: " << endl;
+        cout << "Player " << player1.getName() << "status: " << endl;
         cout << "Won " << to_string(p1Wins) << "times" << endl;
-        cout << "Cards won: " << p1.cardsTaken() << endl;
-        cout << "Player " << p2.getName() << " status:" << endl;
+        cout << "Cards won: " << player1.cardesTaken() << endl;
+        cout << "Player " << player2.getName() << " status:" << endl;
         cout << "Won " << to_string(p2Wins) << "times" << endl;
-        cout << "Cards won: " << p2.cardsTaken() << endl;
+        cout << "Cards won: " << player2.cardesTaken() << endl;
         cout << "Number of turns: " << this->turn << endl;
     }
-
-
-    void Game::printLastTurn(){ cout << lastStats << endl;}
-   
-    void Game::printLog() const {cout << log << endl;}
-   
-    bool Game::getIsTurn(){ return this-> turn;}
-} 
+}
